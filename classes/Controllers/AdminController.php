@@ -153,6 +153,7 @@ class AdminController extends AdminBase
                 'appsecret'    => $appsecret,
                 'callback_url' => $callback_url,
                 'add_gmtime'   => RC_Time::gmtime(),
+                'account_type' => 'default',
                 'sort'         => $sort,
                 'status'       => intval($_POST['status']),
             );
@@ -224,6 +225,7 @@ class AdminController extends AdminBase
                 'appid'        => $appid,
                 'appsecret'    => $appsecret,
                 'callback_url' => $callback_url,
+                'account_type' => 'default',
                 'sort'         => intval($_POST['sort']),
                 'status'       => intval($_POST['status']),
             );

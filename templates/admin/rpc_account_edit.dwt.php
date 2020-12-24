@@ -60,6 +60,14 @@
 									<span class="input-must">*</span>
 								</div>
 							</div>
+
+                            <div class="control-group formSep">
+                                <label class="control-label">{t domain="rpc"}Password Hash：{/t}</label>
+                                <div class="controls">
+                                    <input class="w350" type="text" name="password_hash" id="password_hash" value="{password_hash($account.appsecret, PASSWORD_DEFAULT)}" disabled />
+                                    <span class="help-block">{t domain="rpc"}这是经过password_hash函数加密过的密文，用于浏览器直接登录验证使用，每次刷新不同。{/t}</span>
+                                </div>
+                            </div>
                             {/if}
 
                             <div class="control-group formSep">
