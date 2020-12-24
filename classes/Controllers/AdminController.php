@@ -180,8 +180,8 @@ class AdminController extends AdminBase
 
         $account = RC_DB::table('rpc_account')->where('id', $id)->first();
 
-        $url = RC_Uri::home_url() . '/sites/platform/?uuid=' . $account['id'];
-dd($account);
+        $url = RC_Uri::home_url() . '/sites/rpc/rpc-service';
+
         $this->assign('account', $account);
         $this->assign('url', $url);
 
@@ -195,69 +195,42 @@ dd($account);
      */
     public function update()
     {
-        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
-        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
-        $platform  = !empty($_POST['platform']) ? trim($_POST['platform']) : '';
-        $type      = !empty($_POST['type']) ? intval($_POST['type']) : 0;
-        $name      = !empty($_POST['name']) ? trim($_POST['name']) : '';
-        $token     = !empty($_POST['token']) ? trim($_POST['token']) : '';
-        $appid     = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
-        $appsecret = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
-        $aeskey    = !empty($_POST['aeskey']) ? trim($_POST['aeskey']) : '';
+            $name      = !empty($_POST['name']) ? trim($_POST['name']) : '';
+            $appid     = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
+            $appsecret = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
 
-        if (empty($platform)) {
-            return $this->showmessage(__('请选择平台', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($name)) {
-            return $this->showmessage(__('请输入公众号名称', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($token)) {
-            return $this->showmessage(__('请输入Token', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($appid)) {
-            return $this->showmessage(__('请输入AppID', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($appsecret)) {
-            return $this->showmessage(__('请输入AppSecret', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-
-        //获取旧的logo
-        $old_logo = RC_DB::table('platform_account')->where('id', $id)->value('logo');
-
-        if ((isset($_FILES['platform_logo']['error']) && $_FILES['platform_logo']['error'] == 0) || (!isset($_FILES['platform_logo']['error']) && isset($_FILES['platform_logo']['tmp_name']) && $_FILES['platform_logo']['tmp_name'] != 'none')) {
-            $upload     = RC_Upload::uploader('image', array('save_path' => 'data/platform', 'auto_sub_dirs' => false));
-            $image_info = $upload->upload($_FILES['platform_logo']);
-
-            if (!empty($image_info)) {
-                //删除原来的logo
-                if (!empty($old_logo)) {
-                    $upload->remove($old_logo);
-                }
-                $platform_logo = $upload->get_position($image_info);
-            } else {
-                return $this->showmessage($upload->error(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            if (empty($name)) {
+                return $this->showmessage(__('请输入名称', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
             }
-        } else {
-            $platform_logo = $old_logo;
-        }
-        $data = array(
-            'platform'  => $platform,
-            'type'      => $type,
-            'name'      => $name,
-            'logo'      => $platform_logo,
-            'token'     => $token,
-            'appid'     => $appid,
-            'appsecret' => $appsecret,
-            'aeskey'    => $aeskey,
-            'sort'      => intval($_POST['sort']),
-            'status'    => intval($_POST['status']),
-        );
-        RC_DB::table('platform_account')->where('id', $id)->update($data);
 
-        ecjia_admin::admin_log($_POST['name'], 'edit', 'wechat');
-        return $this->showmessage(__('编辑公众号成功！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('platform/admin/edit', array('id' => $id))));
+            if (empty($appid)) {
+                return $this->showmessage(__('请输入AppID', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            if (empty($appsecret)) {
+                return $this->showmessage(__('请输入AppSecret', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            $data = array(
+                'name'      => $name,
+                'appid'     => $appid,
+                'appsecret' => $appsecret,
+                'sort'      => intval($_POST['sort']),
+                'status'    => intval($_POST['status']),
+            );
+            RC_DB::table('rpc_account')->where('id', $id)->update($data);
+
+            ecjia_admin::admin_log($_POST['name'], 'edit', 'rpc_account');
+
+            return $this->showmessage(__('编辑帐号成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/edit', array('id' => $id))));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
     }
 
     /**
