@@ -50,10 +50,8 @@ use admin_nav_here;
 use ecjia;
 use Ecjia\App\Rpc\Lists\RpcAccountList;
 use ecjia_admin;
-use ecjia_page;
 use ecjia_screen;
 use RC_App;
-use RC_Crypt;
 use RC_DB;
 use RC_Script;
 use RC_Style;
@@ -317,50 +315,23 @@ class AdminController extends AdminBase
      */
     public function remove()
     {
-        $this->admin_priv('platform_config_delete', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_delete', ecjia::MSGTYPE_JSON);
 
-        $id   = isset($_GET['id']) ? intval($_GET['id']) : 0;
-        $info = RC_DB::table('platform_account')->where('id', $id)->select('name', 'logo')->first();
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-        if (!empty($info['logo'])) {
-            $disk = RC_Filesystem::disk();
-            $disk->delete(RC_Upload::upload_path() . $info['logo']);
-        }
-        $success = RC_DB::table('platform_account')->where('id', $id)->delete();
-        //删除公众号扩展及扩展命令
-        RC_DB::table('platform_config')->where('account_id', $id)->delete();
-        RC_DB::table('platform_command')->where('account_id', $id)->delete();
+            $info = RC_DB::table('rpc_account')->where('id', $id)->select('name', 'logo')->first();
 
-        if ($success) {
+            $success = RC_DB::table('rpc_account')->where('id', $id)->delete();
+
+            if (empty($success)) {
+                return $this->showmessage(__('删除帐号失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
             ecjia_admin::admin_log($info['name'], 'remove', 'wechat');
-            return $this->showmessage(__('删除公众号成功！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('platform/admin/init')));
-        } else {
-            return $this->showmessage(__('删除公众号失败！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-    }
-
-    /**
-     * 删除logo
-     */
-    public function remove_logo()
-    {
-        $this->admin_priv('platform_config_update', ecjia::MSGTYPE_JSON);
-
-        $id   = isset($_GET['id']) ? intval($_GET['id']) : 0;
-        $info = RC_DB::table('platform_account')->where('id', $id)->select('name', 'logo')->first();
-        if (!empty($info['logo'])) {
-            $disk = RC_Filesystem::disk();
-            $disk->delete(RC_Upload::upload_path() . $info['logo']);
-        }
-        $data   = array('logo' => '');
-        $update = RC_DB::table('platform_account')->where('id', $id)->update($data);
-
-        ecjia_admin::admin_log(sprintf(__('公众号名称为%s', 'platform'), $info['name']), 'remove', 'platform_logo');
-
-        if ($update) {
-            return $this->showmessage(__('删除成功', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS);
-        } else {
-            return $this->showmessage(__('删除失败', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            return $this->showmessage(__('删除帐号成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/init')));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
     }
 
@@ -411,43 +382,6 @@ class AdminController extends AdminBase
         }
     }
 
-    public function autologin()
-    {
-        $id = $this->request->input('id');
-
-        $uuid = RC_DB::table('platform_account')->where('id', $id)->value('uuid');
-        if (empty($uuid)) {
-            return $this->showmessage(__('该公众号不存在', 'platform'), ecjia::MSGTYPE_HTML | ecjia::MSGSTAT_ERROR);
-        }
-
-        //公众平台的超管权限同平台后台的权限
-        if (session('action_list') == 'all') {
-            $user = new Ecjia\System\Admins\Users\AdminUser(session('admin_id'), '\Ecjia\App\Platform\Frameworks\Users\AdminUserAllotPurview');
-            if ($user->getActionList() != 'all') {
-                $user->setActionList('all');
-            }
-        }
-
-        $authcode_array = [
-            'uuid'      => $uuid,
-            'user_id'   => session('admin_id'),
-            'user_type' => 'admin',
-            'time'      => RC_Time::gmtime(),
-        ];
-
-        $authcode_str = http_build_query($authcode_array);
-        $authcode     = RC_Crypt::encrypt($authcode_str);
-
-        if (defined('RC_SITE')) {
-            $index = 'sites/' . RC_SITE . '/index.php';
-        } else {
-            $index = 'index.php';
-        }
-
-        $url = str_replace($index, "sites/platform/index.php", RC_Uri::url('platform/privilege/autologin')) . '&authcode=' . $authcode;
-        return $this->redirect($url);
-    }
-
     /**
      * 批量删除
      */
@@ -479,88 +413,6 @@ class AdminController extends AdminBase
         return $this->showmessage(__('生成token成功', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('token' => $key));
     }
 
-//    /**
-//     * 公众号列表
-//     */
-//    private function wechat_list()
-//    {
-//        $db_platform_account = RC_DB::table('rpc_account');
-//        $filter              = array();
-//        $platform            = !empty($_GET['platform']) ? $_GET['platform'] : '';
-//        $filter['keywords']  = empty($_GET['keywords']) ? '' : trim($_GET['keywords']);
-//        if (!empty($filter['keywords'])) {
-//            $db_platform_account->where('name', 'like', '%' . mysql_like_quote($filter['keywords']) . '%');
-//        }
-//        $db_platform_account->where('platform', '!=', 'weapp')->where('shop_id', 0);
-//        if (!empty($platform)) {
-//            $db_platform_account->where('platform', $platform);
-//        }
-//        $count = $db_platform_account->count('id');
-//
-//        $filter['record_count'] = $count;
-//        $page                   = new ecjia_page($count, 10, 5);
-//
-//        $arr  = array();
-//        $data = $db_platform_account->orderBy('sort', 'asc')->orderBy('add_time', 'desc')->take(10)->skip($page->start_id - 1)->get();
-//
-//        if (isset($data)) {
-//            foreach ($data as $rows) {
-//                $rows['add_time'] = RC_Time::local_date(ecjia::config('time_format'), $rows['add_time']);
-//                if (empty($rows['logo'])) {
-//                    $rows['logo'] = RC_Uri::admin_url('statics/images/nopic.png');
-//                } else {
-//                    $rows['logo'] = RC_Upload::upload_url($rows['logo']);
-//                }
-//                $arr[] = $rows;
-//            }
-//        }
-//        return array('item' => $arr, 'filter' => $filter, 'page' => $page->show(5), 'desc' => $page->page_desc());
-//    }
-
-//    /**
-//     * 获取扩展列表
-//     */
-//    public function get_extend_list()
-//    {
-//        $id        = intval($_GET['JSON']['id']);
-//        $keywords  = trim($_GET['JSON']['keywords']);
-//        $db_extend = RC_DB::table('platform_extend');
-//
-//        //已禁用的扩展搜索不显示
-//        $db_extend->where('enabled', '!=', 0);
-//        if (!empty($keywords)) {
-//            $db_extend->where(function ($query) use ($keywords) {
-//                $query->where('ext_name', 'like', '%' . mysql_like_quote($keywords) . '%')->orWhere('ext_code', 'like', '%' . mysql_like_quote($keywords) . '%');
-//            });
-//        }
-//
-//        //查找已关联的扩展
-//        $ext_code_list = RC_DB::table('platform_config')->where('account_id', $id)->lists('ext_code');
-//        $platform_list = $db_extend->select('ext_id', 'ext_name', 'ext_code', 'ext_config')->orderBy('ext_id', 'desc')->get();
-//
-//        if ($ext_code_list) {
-//            if (!empty($platform_list)) {
-//                foreach ($platform_list as $k => $v) {
-//                    if (in_array($v['ext_code'], $ext_code_list)) {
-//                        unset($platform_list[$k]);
-//                    }
-//                }
-//            }
-//        }
-//
-//        $opt = array();
-//        if (!empty($platform_list)) {
-//            foreach ($platform_list as $key => $val) {
-//                $opt[] = array(
-//                    'ext_id'     => $val['ext_id'],
-//                    'ext_name'   => $val['ext_name'],
-//                    'ext_code'   => $val['ext_code'],
-//                    'ext_config' => $val['ext_config'],
-//                );
-//            }
-//        }
-//        return $this->showmessage('', ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('content' => $opt));
-//    }
 }
 
 //end
