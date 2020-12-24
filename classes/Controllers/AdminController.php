@@ -148,13 +148,13 @@ class AdminController extends AdminBase
             $sort      = 50;
 
             $data = array(
-                'name'       => $name,
-                'appid'      => $appid,
-                'appsecret'  => $appsecret,
-                'callback_url'  => $callback_url,
-                'add_gmtime' => RC_Time::gmtime(),
-                'sort'       => $sort,
-                'status'     => intval($_POST['status']),
+                'name'         => $name,
+                'appid'        => $appid,
+                'appsecret'    => $appsecret,
+                'callback_url' => $callback_url,
+                'add_gmtime'   => RC_Time::gmtime(),
+                'sort'         => $sort,
+                'status'       => intval($_POST['status']),
             );
             $id   = RC_DB::table('rpc_account')->insertGetId($data);
 
@@ -202,9 +202,9 @@ class AdminController extends AdminBase
 
             $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
-            $name      = !empty($_POST['name']) ? trim($_POST['name']) : '';
-            $appid     = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
-            $appsecret = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
+            $name         = !empty($_POST['name']) ? trim($_POST['name']) : '';
+            $appid        = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
+            $appsecret    = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
             $callback_url = !empty($_POST['callback_url']) ? trim($_POST['callback_url']) : '';
 
             if (empty($name)) {
@@ -220,12 +220,12 @@ class AdminController extends AdminBase
             }
 
             $data = array(
-                'name'      => $name,
-                'appid'     => $appid,
-                'appsecret' => $appsecret,
+                'name'         => $name,
+                'appid'        => $appid,
+                'appsecret'    => $appsecret,
                 'callback_url' => $callback_url,
-                'sort'      => intval($_POST['sort']),
-                'status'    => intval($_POST['status']),
+                'sort'         => intval($_POST['sort']),
+                'status'       => intval($_POST['status']),
             );
             RC_DB::table('rpc_account')->where('id', $id)->update($data);
 
