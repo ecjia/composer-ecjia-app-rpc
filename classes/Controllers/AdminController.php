@@ -340,7 +340,7 @@ class AdminController extends AdminBase
      */
     public function toggle_show()
     {
-        $this->admin_priv('platform_config_update', ecjia::MSGTYPE_JSON);
+        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
         $id  = intval($_POST['id']);
         $val = intval($_POST['val']);
@@ -361,25 +361,25 @@ class AdminController extends AdminBase
      */
     public function edit_sort()
     {
-        $this->admin_priv('platform_config_update', ecjia::MSGTYPE_JSON);
+        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
         $id   = intval($_POST['pk']);
         $sort = trim($_POST['value']);
 
-        if (!empty($sort)) {
-            if (!is_numeric($sort)) {
-                return $this->showmessage(__('请输入数值！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-            } else {
-                $update = RC_DB::table('platform_account')->where('id', $id)->update(array('sort' => $sort));
-                if ($update) {
-                    return $this->showmessage(__('编辑排序成功！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_uri::url('platform/admin/init')));
-                } else {
-                    return $this->showmessage(__('编辑排序失败！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-                }
-            }
-        } else {
-            return $this->showmessage(__('公众号排序不能为空！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        if (empty($sort)) {
+            return $this->showmessage(__('排序不能为空！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
+
+        if (!is_numeric($sort)) {
+            return $this->showmessage(__('请输入数值！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
+
+        $update = RC_DB::table('rpc_account')->where('id', $id)->update(array('sort' => $sort));
+        if (empty($update)) {
+            return $this->showmessage(__('编辑排序失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
+
+        return $this->showmessage(__('编辑排序成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_uri::url('rpc/admin/init')));
     }
 
     /**
@@ -387,20 +387,22 @@ class AdminController extends AdminBase
      */
     public function batch_remove()
     {
-        $this->admin_priv('platform_extend_delete', ecjia::MSGTYPE_JSON);
+        $this->admin_priv('rpc_account_delete', ecjia::MSGTYPE_JSON);
 
         $idArr = explode(',', $_POST['id']);
         $count = count($idArr);
 
-        $info = RC_DB::table('platform_account')->whereIn('id', $idArr)->select('name')->get();
+        $success = RC_DB::table('rpc_account')->whereIn('id', $idArr)->delete();
 
-        foreach ($info as $v) {
-            ecjia_admin::admin_log($v['name'], 'batch_remove', 'wechat');
+        if ($success) {
+            $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get();
+
+            foreach ($info as $v) {
+                ecjia_admin::admin_log($v['name'], 'batch_remove', 'rpc_account');
+            }
         }
-        RC_DB::table('platform_account')->whereIn('id', $idArr)->delete();
 
-
-        return $this->showmessage(sprintf(__('本次删除了[%s]条记录！', 'platform'), $count), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('platform/admin/init')));
+        return $this->showmessage(sprintf(__('本次删除了[%s]条记录！', 'platform'), $count), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/init')));
     }
 
     /**
