@@ -90,9 +90,7 @@ class AdminController extends AdminBase
         RC_Script::enqueue_script('generate_token', RC_App::apps_url('statics/js/generate_token.js', $this->__FILE__), array(), false, true);
         RC_Script::localize_script('platform', 'js_lang', config('app-platform::jslang.admin_page'));
 
-        RC_Style::enqueue_style('wechat_extend', RC_App::apps_url('statics/css/wechat_extend.css', $this->__FILE__));
-
-        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('公众号列表', 'platform'), RC_Uri::url('platform/admin/init')));
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'platform'), RC_Uri::url('rpc/admin/init')));
     }
 
     /**
@@ -100,19 +98,17 @@ class AdminController extends AdminBase
      */
     public function init()
     {
-        $this->admin_priv('platform_config_manage');
+        $this->admin_priv('rpc_account_manage');
 
         ecjia_screen::get_current_screen()->remove_last_nav_here();
-        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('公众号列表', 'platform')));
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'rpc')));
 
-        $this->assign('ur_here', __('公众号列表', 'platform'));
-        $this->assign('action_link', array('text' => __('添加公众号', 'platform'), 'href' => RC_Uri::url('platform/admin/add')));
+        $this->assign('ur_here', __('RPC帐号列表', 'rpc'));
+        $this->assign('action_link', array('text' => __('添加帐号', 'rpc'), 'href' => RC_Uri::url('rpc/admin/add')));
 
-//        $wechat_list = $this->wechat_list();
         $account_list = (new RpcAccountList)();
-//        dd($account_list);
         $this->assign('account_list', $account_list);
-        $this->assign('search_action', RC_Uri::url('platform/admin/init'));
+        $this->assign('search_action', RC_Uri::url('rpc/admin/init'));
 
         return $this->display('rpc_account_list.dwt');
     }
