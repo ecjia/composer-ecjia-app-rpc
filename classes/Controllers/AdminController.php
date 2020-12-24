@@ -136,7 +136,8 @@ class AdminController extends AdminBase
         try {
             $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
-            $name = !empty($_POST['name']) ? trim($_POST['name']) : '';
+            $name         = !empty($_POST['name']) ? trim($_POST['name']) : '';
+            $callback_url = !empty($_POST['callback_url']) ? trim($_POST['callback_url']) : '';
 
             if (empty($name)) {
                 return $this->showmessage(__('请输入公众号名称', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
@@ -150,6 +151,7 @@ class AdminController extends AdminBase
                 'name'       => $name,
                 'appid'      => $appid,
                 'appsecret'  => $appsecret,
+                'callback_url'  => $callback_url,
                 'add_gmtime' => RC_Time::gmtime(),
                 'sort'       => $sort,
                 'status'     => intval($_POST['status']),
@@ -203,6 +205,7 @@ class AdminController extends AdminBase
             $name      = !empty($_POST['name']) ? trim($_POST['name']) : '';
             $appid     = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
             $appsecret = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
+            $callback_url = !empty($_POST['callback_url']) ? trim($_POST['callback_url']) : '';
 
             if (empty($name)) {
                 return $this->showmessage(__('请输入名称', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
@@ -220,6 +223,7 @@ class AdminController extends AdminBase
                 'name'      => $name,
                 'appid'     => $appid,
                 'appsecret' => $appsecret,
+                'callback_url' => $callback_url,
                 'sort'      => intval($_POST['sort']),
                 'status'    => intval($_POST['status']),
             );

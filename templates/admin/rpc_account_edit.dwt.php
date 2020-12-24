@@ -40,6 +40,7 @@
 								<div class="controls">
 									<input class="w350" type="text" name="name" id="name" value="{$account.name}" />
 									<span class="input-must">*</span>
+                                    <span class="help-block">{t domain="rpc"}给起一个名称，方便查看。{/t}</span>
 								</div>
 							</div>
 
@@ -60,6 +61,14 @@
 								</div>
 							</div>
                             {/if}
+
+                            <div class="control-group formSep">
+                                <label class="control-label">{t domain="rpc"}回调地址：{/t}</label>
+                                <div class="controls">
+                                    <input class="w350" type="text" name="callback_url" id="callback_url" value="{$account.callback_url}" />
+                                    <span class="help-block">{t domain="rpc"}回调地址，用于发送数据到对方网站，双向通信使用，没有则不填。{/t}</span>
+                                </div>
+                            </div>
 
                             {*
                             <div class="control-group formSep">
