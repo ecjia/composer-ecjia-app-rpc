@@ -84,8 +84,13 @@
 							<div class="control-group formSep">
 								<label class="control-label">{t domain="rpc"}状态：{/t}</label>
 								<div class="controls chk_radio">
+                                    {if $account neq NULL}
 									<input type="radio" name="status" value="1" {if $account.status eq 1}checked{/if}><span>{t domain="rpc"}开启{/t}</span>
                                     <input type="radio" name="status" value="0" {if $account.status eq 0}checked{/if}><span>{t domain="rpc"}关闭{/t}</span>
+                                    {else}
+                                    <input type="radio" name="status" value="1" checked><span>{t domain="rpc"}开启{/t}</span>
+                                    <input type="radio" name="status" value="0"><span>{t domain="rpc"}关闭{/t}</span>
+                                    {/if}
 								</div>
 							</div>
 
