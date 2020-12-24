@@ -39,23 +39,29 @@ class RpcAccountList
         }
 
         $count = $repository->count();
-
+//dd($count);
         $filter['record_count'] = $count;
         $page                   = new ecjia_page($count, $repository->getModel()->getPerPage(), 5);
 
-        $arr  = array();
+//        $arr  = array();
         $data = $repository->orderBy('sort', 'asc')
                 ->orderBy('add_time', 'desc')
-                ->paginate(10)->all();
-//        dd($data->all());
-        if (!empty($data)) {
-            foreach ($data as $rows) {
-                $rows['add_time'] = RC_Time::local_date(ecjia::config('time_format'), $rows['add_gmtime']);
-                $arr[] = $rows;
-            }
-        }
+                ->paginate();
+//        dd($data);
+//        if (!empty($data)) {
+//            foreach ($data as $rows) {
+//                $rows['add_gmtime'] = RC_Time::local_date(ecjia::config('time_format'), $rows['add_gmtime']);
+//                $arr[] = $rows;
+//            }
+//        }
 
-        return array('item' => $arr, 'filter' => $filter, 'page' => $page->show(5), 'desc' => $page->page_desc());
+        $data = $data->map(function ($item) {
+            $item['add_time'] = RC_Time::local_date(ecjia::config('time_format'), $item['add_gmtime']);
+            return $item;
+        });
+
+//        dd($data);
+        return array('item' => $data, 'filter' => $filter, 'page' => $page->show(5), 'desc' => $page->page_desc());
     }
 
 }

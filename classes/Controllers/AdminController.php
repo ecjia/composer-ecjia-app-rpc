@@ -111,7 +111,7 @@ class AdminController extends AdminBase
 //        $wechat_list = $this->wechat_list();
         $account_list = (new RpcAccountList)();
 //        dd($account_list);
-        $this->assign('wechat_list', $account_list);
+        $this->assign('account_list', $account_list);
         $this->assign('search_action', RC_Uri::url('platform/admin/init'));
 
         return $this->display('rpc_account_list.dwt');
