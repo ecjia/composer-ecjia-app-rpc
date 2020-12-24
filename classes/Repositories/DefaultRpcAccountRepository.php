@@ -79,6 +79,17 @@ class DefaultRpcAccountRepository extends AbstractRepository
         return $this->query->count();
     }
 
+    /**
+     * @param $appId
+     * @return \Illuminate\Database\Eloquent\Model|object|null
+     */
+    public function getAccountByAppId($appId)
+    {
+        $this->newQuery();
+
+        return $this->query->where('appid', $appId)->first();
+    }
+
 }
 
 // end
