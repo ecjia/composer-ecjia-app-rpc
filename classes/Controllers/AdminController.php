@@ -87,7 +87,7 @@ class AdminController extends AdminBase
         RC_Script::enqueue_script('clipboard', RC_App::apps_url('statics/js/clipboard.min.js', $this->__FILE__));
         RC_Script::enqueue_script('platform', RC_App::apps_url('statics/js/platform.js', $this->__FILE__), array(), false, true);
         RC_Script::enqueue_script('generate_token', RC_App::apps_url('statics/js/generate_token.js', $this->__FILE__), array(), false, true);
-        RC_Script::localize_script('platform', 'js_lang', config('app-platform::jslang.admin_page'));
+        RC_Script::localize_script('platform', 'js_lang', config('app-rpc::jslang.admin_page'));
 
         ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'platform'), RC_Uri::url('rpc/admin/init')));
     }
@@ -243,7 +243,7 @@ class AdminController extends AdminBase
 
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-            $info = RC_DB::table('rpc_account')->where('id', $id)->select('name', 'logo')->first();
+            $info = RC_DB::table('rpc_account')->where('id', $id)->select('name')->first();
 
             $success = RC_DB::table('rpc_account')->where('id', $id)->delete();
 
