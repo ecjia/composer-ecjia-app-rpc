@@ -46,6 +46,7 @@
 //
 namespace Ecjia\App\Rpc;
 
+use RC_Service;
 use Royalcms\Component\App\AppParentServiceProvider;
 
 class RpcServiceProvider extends AppParentServiceProvider
@@ -66,7 +67,8 @@ class RpcServiceProvider extends AppParentServiceProvider
 
     protected function registerAppService()
     {
-
+        RC_Service::addService('admin_purview', 'rpc', 'Ecjia\App\Rpc\Services\RpcAdminPurviewService');
+        RC_Service::addService('admin_menu', 'rpc', 'Ecjia\App\Rpc\Services\RpcAdminMenuService');
     }
 
     protected function bootEvent()
