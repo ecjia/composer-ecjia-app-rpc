@@ -48,6 +48,7 @@ namespace Ecjia\App\Rpc\Controllers;
 
 use admin_nav_here;
 use ecjia;
+use Ecjia\App\Rpc\AccountGenerate;
 use Ecjia\App\Rpc\Lists\RpcAccountList;
 use ecjia_admin;
 use ecjia_screen;
@@ -60,7 +61,7 @@ use RC_Upload;
 use RC_Uri;
 
 /**
- * ECJIA平台、公众号配置
+ * ECJIA RPC帐号管理
  */
 class AdminController extends AdminBase
 {
@@ -92,7 +93,7 @@ class AdminController extends AdminBase
     }
 
     /**
-     * 公众号列表
+     * 列表
      */
     public function init()
     {
@@ -112,96 +113,55 @@ class AdminController extends AdminBase
     }
 
     /**
-     * 添加公众号页面
+     * 添加页面
      */
     public function add()
     {
-        $this->admin_priv('platform_config_add');
+        $this->admin_priv('rpc_account_update');
 
-        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('公众号列表', 'platform')));
-        ecjia_screen::get_current_screen()->add_help_tab(array(
-            'id'      => 'overview',
-            'title'   => __('概述', 'platform'),
-            'content' => '<p>' . __('欢迎访问ECJia智能后台添加公众号页面，在此页面可以进行添加公众号操作。', 'platform') . '</p>',
-        ));
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'platform')));
 
-        ecjia_screen::get_current_screen()->set_help_sidebar(
-            '<p><strong>' . __('更多信息', 'platform') . '</strong></p>' .
-            '<p>' . __('<a href="https://ecjia.com/wiki/帮助:ECJia公众平台:管理公众号#.E6.B7.BB.E5.8A.A0.E5.85.AC.E4.BC.97.E5.8F.B7" target="_blank">' . __('关于添加公众号帮助文档', 'platform') . '</a>') . '</p>'
-        );
+        $this->assign('ur_here', __('添加公众号', 'rpc'));
+        $this->assign('action_link', array('text' => __('RPC帐号列表', 'rpc'), 'href' => RC_Uri::url('rpc/admin/init')));
+        $this->assign('form_action', RC_Uri::url('rpc/admin/insert'));
 
-        $this->assign('ur_here', __('添加公众号', 'platform'));
-        $this->assign('action_link', array('text' => __('公众号列表', 'platform'), 'href' => RC_Uri::url('platform/admin/init')));
-        $this->assign('form_action', RC_Uri::url('platform/admin/insert'));
-        $this->assign('wechat', array('status' => 1));
-
-        return $this->display('wechat_edit.dwt');
+        return $this->display('rpc_account_edit.dwt');
     }
 
     /**
-     * 添加公众号处理
+     * 添加处理
      */
     public function insert()
     {
-        $this->admin_priv('platform_config_add', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
-        $platform  = !empty($_POST['platform']) ? trim($_POST['platform']) : '';
-        $type      = !empty($_POST['type']) ? intval($_POST['type']) : 0;
-        $name      = !empty($_POST['name']) ? trim($_POST['name']) : '';
-        $token     = !empty($_POST['token']) ? trim($_POST['token']) : '';
-        $appid     = !empty($_POST['appid']) ? trim($_POST['appid']) : '';
-        $appsecret = !empty($_POST['appsecret']) ? trim($_POST['appsecret']) : '';
-        $aeskey    = !empty($_POST['aeskey']) ? trim($_POST['aeskey']) : '';
+            $name = !empty($_POST['name']) ? trim($_POST['name']) : '';
 
-        if (empty($platform)) {
-            return $this->showmessage(__('请选择平台', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($name)) {
-            return $this->showmessage(__('请输入公众号名称', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($token)) {
-            return $this->showmessage(__('请输入Token', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($appid)) {
-            return $this->showmessage(__('请输入AppID', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-        if (empty($appsecret)) {
-            return $this->showmessage(__('请输入AppSecret', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-
-        $uuid = Royalcms\Component\Uuid\Uuid::generate();
-        $uuid = str_replace("-", "", $uuid);
-
-        if ((isset($_FILES['platform_logo']['error']) && $_FILES['platform_logo']['error'] == 0) || (!isset($_FILES['platform_logo']['error']) && isset($_FILES['platform_logo']['tmp_name']) && $_FILES['platform_logo']['tmp_name'] != 'none')) {
-            $upload     = RC_Upload::uploader('image', array('save_path' => 'data/platform', 'auto_sub_dirs' => false));
-            $image_info = $upload->upload($_FILES['platform_logo']);
-            if (!empty($image_info)) {
-                $platform_logo = $upload->get_position($image_info);
-            } else {
-                return $this->showmessage($upload->error(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            if (empty($name)) {
+                return $this->showmessage(__('请输入公众号名称', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
             }
-        } else {
-            $platform_logo = '';
+
+            $appid     = AccountGenerate::generate_app_id();
+            $appsecret = AccountGenerate::generate_app_secret();
+            $sort      = 50;
+
+            $data = array(
+                'name'       => $name,
+                'appid'      => $appid,
+                'appsecret'  => $appsecret,
+                'add_gmtime' => RC_Time::gmtime(),
+                'sort'       => $sort,
+                'status'     => intval($_POST['status']),
+            );
+            $id   = RC_DB::table('rpc_account')->insertGetId($data);
+
+            ecjia_admin::admin_log($_POST['name'], 'add', 'rpc_account');
+
+            return $this->showmessage(__('添加帐号成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/edit', array('id' => $id))));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
-
-        $data = array(
-            'uuid'      => $uuid,
-            'platform'  => $platform,
-            'logo'      => $platform_logo,
-            'type'      => $type,
-            'name'      => $name,
-            'token'     => $token,
-            'appid'     => $appid,
-            'appsecret' => $appsecret,
-            'aeskey'    => $aeskey,
-            'add_time'  => RC_Time::gmtime(),
-            'sort'      => intval($_POST['sort']),
-            'status'    => intval($_POST['status']),
-        );
-        $id   = RC_DB::table('platform_account')->insertGetId($data);
-
-        ecjia_admin::admin_log($_POST['name'], 'add', 'wechat');
-        return $this->showmessage(__('添加公众号成功！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('platform/admin/edit', array('id' => $id))));
     }
 
     /**
@@ -209,35 +169,25 @@ class AdminController extends AdminBase
      */
     public function edit()
     {
-        $this->admin_priv('platform_config_update');
+        $this->admin_priv('rpc_account_update');
 
-        $this->assign('ur_here', __('编辑公众号', 'platform'));
-        $this->assign('action_link', array('text' => __('公众号列表', 'platform'), 'href' => RC_Uri::url('platform/admin/init')));
-        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('编辑公众号', 'platform')));
+        $this->assign('ur_here', __('编辑帐号', 'rpc'));
+        $this->assign('action_link', array('text' => __('RPC帐号列表', 'rpc'), 'href' => RC_Uri::url('rpc/admin/init')));
 
-        ecjia_screen::get_current_screen()->add_help_tab(array(
-            'id'      => 'overview',
-            'title'   => __('概述', 'platform'),
-            'content' =>
-                '<p>' . __('欢迎访问ECJia智能后台编辑公众号页面，在此页面可以进行编辑公众号操作。', 'platform') . '</p>',
-        ));
+        ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('编辑帐号', 'rpc')));
 
-        ecjia_screen::get_current_screen()->set_help_sidebar(
-            '<p><strong>' . __('更多信息', 'platform') . '</strong></p>' .
-            '<p>' . __('<a href="https://ecjia.com/wiki/帮助:ECJia公众平台:管理公众号#.E7.BC.96.E8.BE.91.E5.85.AC.E4.BC.97.E5.8F.B7" target="_blank">' . __('关于编辑公众号帮助文档', 'platform') . '</a>') . '</p>'
-        );
+        $id = intval($_GET['id']);
 
-        $wechat = RC_DB::table('platform_account')->where('id', intval($_GET['id']))->first();
-        if (!empty($wechat['logo'])) {
-            $wechat['logo'] = RC_Upload::upload_url($wechat['logo']);
-        }
-        $url = RC_Uri::home_url() . '/sites/platform/?uuid=' . $wechat['uuid'];
-        $this->assign('wechat', $wechat);
+        $account = RC_DB::table('rpc_account')->where('id', $id)->first();
+
+        $url = RC_Uri::home_url() . '/sites/platform/?uuid=' . $account['id'];
+dd($account);
+        $this->assign('account', $account);
         $this->assign('url', $url);
 
-        $this->assign('form_action', RC_Uri::url('platform/admin/update'));
+        $this->assign('form_action', RC_Uri::url('rpc/admin/update'));
 
-        return $this->display('wechat_edit.dwt');
+        return $this->display('rpc_account_edit.dwt');
     }
 
     /**
@@ -245,7 +195,7 @@ class AdminController extends AdminBase
      */
     public function update()
     {
-        $this->admin_priv('platform_config_update', ecjia::MSGTYPE_JSON);
+        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
@@ -340,20 +290,24 @@ class AdminController extends AdminBase
      */
     public function toggle_show()
     {
-        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
-        $id  = intval($_POST['id']);
-        $val = intval($_POST['val']);
-        RC_DB::table('platform_account')->where('id', $id)->update(array('status' => $val));
-        $name = RC_DB::table('platform_account')->where('id', $id)->value('name');
+            $id  = intval($_POST['id']);
+            $val = intval($_POST['val']);
+            RC_DB::table('rpc_account')->where('id', $id)->update(array('status' => $val));
+            $name = RC_DB::table('rpc_account')->where('id', $id)->value('name');
 
-        if ($val == 1) {
-            ecjia_admin::admin_log($name, 'use', 'wechat');
-        } else {
-            ecjia_admin::admin_log($name, 'stop', 'wechat');
+            if ($val == 1) {
+                ecjia_admin::admin_log($name, 'use', 'rpc_account');
+            } else {
+                ecjia_admin::admin_log($name, 'stop', 'rpc_account');
+            }
+
+            return $this->showmessage(__('切换状态成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('content' => $val, 'pjaxurl' => RC_Uri::url('rpc/admin/init')));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
-
-        return $this->showmessage(__('切换状态成功！', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('content' => $val, 'pjaxurl' => RC_Uri::url('platform/admin/init')));
     }
 
     /**
@@ -361,25 +315,29 @@ class AdminController extends AdminBase
      */
     public function edit_sort()
     {
-        $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_update', ecjia::MSGTYPE_JSON);
 
-        $id   = intval($_POST['pk']);
-        $sort = trim($_POST['value']);
+            $id   = intval($_POST['pk']);
+            $sort = trim($_POST['value']);
 
-        if (empty($sort)) {
-            return $this->showmessage(__('排序不能为空！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            if (empty($sort)) {
+                return $this->showmessage(__('排序不能为空！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            if (!is_numeric($sort)) {
+                return $this->showmessage(__('请输入数值！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            $update = RC_DB::table('rpc_account')->where('id', $id)->update(array('sort' => $sort));
+            if (empty($update)) {
+                return $this->showmessage(__('编辑排序失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            return $this->showmessage(__('编辑排序成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_uri::url('rpc/admin/init')));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
-
-        if (!is_numeric($sort)) {
-            return $this->showmessage(__('请输入数值！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-
-        $update = RC_DB::table('rpc_account')->where('id', $id)->update(array('sort' => $sort));
-        if (empty($update)) {
-            return $this->showmessage(__('编辑排序失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
-        }
-
-        return $this->showmessage(__('编辑排序成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_uri::url('rpc/admin/init')));
     }
 
     /**
@@ -387,22 +345,26 @@ class AdminController extends AdminBase
      */
     public function batch_remove()
     {
-        $this->admin_priv('rpc_account_delete', ecjia::MSGTYPE_JSON);
+        try {
+            $this->admin_priv('rpc_account_delete', ecjia::MSGTYPE_JSON);
 
-        $idArr = explode(',', $_POST['id']);
-        $count = count($idArr);
+            $idArr = explode(',', $_POST['id']);
+            $count = count($idArr);
 
-        $success = RC_DB::table('rpc_account')->whereIn('id', $idArr)->delete();
+            $success = RC_DB::table('rpc_account')->whereIn('id', $idArr)->delete();
 
-        if ($success) {
-            $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get();
+            if ($success) {
+                $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get();
 
-            foreach ($info as $v) {
-                ecjia_admin::admin_log($v['name'], 'batch_remove', 'rpc_account');
+                foreach ($info as $v) {
+                    ecjia_admin::admin_log($v['name'], 'batch_remove', 'rpc_account');
+                }
             }
-        }
 
-        return $this->showmessage(sprintf(__('本次删除了[%s]条记录！', 'platform'), $count), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/init')));
+            return $this->showmessage(sprintf(__('本次删除了[%s]条记录！', 'platform'), $count), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('pjaxurl' => RC_Uri::url('rpc/admin/init')));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
     }
 
     /**
@@ -410,9 +372,12 @@ class AdminController extends AdminBase
      */
     public function generate_token()
     {
-        $key = rc_random(16, 'abcdefghijklmnopqrstuvwxyz0123456789');
-        $key = 'ecjia' . $key;
-        return $this->showmessage(__('生成token成功', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('token' => $key));
+        try {
+            $key = AccountGenerate::generate_app_id();
+            return $this->showmessage(__('生成token成功', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('token' => $key));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
     }
 
 }
