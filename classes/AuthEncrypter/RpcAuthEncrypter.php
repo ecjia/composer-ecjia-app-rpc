@@ -2,6 +2,7 @@
 
 namespace Ecjia\App\Rpc\AuthEncrypter;
 
+use ecjia;
 use Ecjia\App\Rpc\Repositories\DefaultRpcAccountRepository;
 use Illuminate\Encryption\Encrypter;
 
