@@ -1,6 +1,6 @@
 <?php
 
-namespace Ecjia\System\Frameworks\JsonRpcHttpClient;
+namespace Ecjia\App\Rpc\JsonRpcHttpClient;
 
 use ecjia;
 use Ecjia\App\Rpc\Repositories\DefaultRpcAccountRepository;
