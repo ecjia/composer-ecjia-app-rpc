@@ -59,7 +59,7 @@
 					</td>
 					<td class="hide-edit-area">
 						{$val.name}<br>
-						{$val.id}
+                        {t domain="platform"}ID: {/t}{$val.id}
 						<div class="edit-list">
 					      	<a class="data-pjax" href='{RC_Uri::url("rpc/admin/edit", "id={$val.id}")}' title='{t domain="platform"}编辑{/t}'>{t domain="platform"}编辑{/t}</a> &nbsp;|&nbsp;
 					     	<a class="ajaxremove ecjiafc-red" data-toggle="ajaxremove" data-msg='{t domain="platform" 1={$val.name}}您确定要删除公众号[%1]吗？{/t}' href='{RC_Uri::url("rpc/admin/remove", "id={$val.id}")}' title='{t domain="platform"}删除{/t}'>{t domain="platform"}删除{/t}</a>
