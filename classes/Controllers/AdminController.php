@@ -333,7 +333,7 @@ class AdminController extends AdminBase
             $success = RC_DB::table('rpc_account')->whereIn('id', $idArr)->delete();
 
             if ($success) {
-                $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get();
+                $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get()->toArray();
 
                 foreach ($info as $v) {
                     ecjia_admin::admin_log($v['name'], 'batch_remove', 'rpc_account');
