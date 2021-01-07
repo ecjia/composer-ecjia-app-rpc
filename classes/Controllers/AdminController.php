@@ -121,7 +121,7 @@ class AdminController extends AdminBase
 
         ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'platform')));
 
-        $this->assign('ur_here', __('添加公众号', 'rpc'));
+        $this->assign('ur_here', __('添加账号', 'rpc'));
         $this->assign('action_link', array('text' => __('RPC帐号列表', 'rpc'), 'href' => RC_Uri::url('rpc/admin/init')));
         $this->assign('form_action', RC_Uri::url('rpc/admin/insert'));
 
