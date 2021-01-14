@@ -49,7 +49,9 @@ namespace Ecjia\App\Rpc\Controllers;
 use admin_nav_here;
 use ecjia;
 use Ecjia\App\Rpc\AccountGenerate;
+use Ecjia\App\Rpc\BrowserEvent\GenerateTokenEvent;
 use Ecjia\App\Rpc\Lists\RpcAccountList;
+use Ecjia\Theme\Merchant\RpcClients\TestService;
 use ecjia_admin;
 use ecjia_screen;
 use RC_App;
@@ -86,7 +88,6 @@ class AdminController extends AdminBase
 
         RC_Script::enqueue_script('clipboard', RC_App::apps_url('statics/js/clipboard.min.js', $this->__FILE__));
         RC_Script::enqueue_script('platform', RC_App::apps_url('statics/js/platform.js', $this->__FILE__), array(), false, true);
-        RC_Script::enqueue_script('generate_token', RC_App::apps_url('statics/js/generate_token.js', $this->__FILE__), array(), false, true);
         RC_Script::localize_script('platform', 'js_lang', config('app-rpc::jslang.admin_page'));
 
         ecjia_screen::get_current_screen()->add_nav_here(new admin_nav_here(__('RPC帐号列表', 'platform'), RC_Uri::url('rpc/admin/init')));
@@ -184,6 +185,9 @@ class AdminController extends AdminBase
         $account = RC_DB::table('rpc_account')->where('id', $id)->first();
 
         $url = RC_Uri::home_url() . '/sites/rpc/rpc-service';
+
+        //加载页面JS
+        $this->getPageEvent()->addPageHandler(GenerateTokenEvent::class);
 
         $this->assign('account', $account);
         $this->assign('url', $url);
@@ -353,7 +357,40 @@ class AdminController extends AdminBase
     {
         try {
             $key = AccountGenerate::generate_app_id();
-            return $this->showmessage(__('生成token成功', 'platform'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('token' => $key));
+            return $this->showmessage(__('生成token成功', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS, array('token' => $key));
+        } catch (\Exception $exception) {
+            return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+        }
+    }
+
+    /**
+     * 测试rpc通信
+     */
+    public function test_connect()
+    {
+        try {
+            $appid = $this->request->input('check');
+
+            if (empty($appid)) {
+                return $this->showmessage(__('APPID参数不能为空！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            $account = RC_DB::table('rpc_account')->where('appid', $appid)->first();
+
+            if (empty($account)) {
+                return $this->showmessage(__('RPC帐户不存在！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            if (empty($account['callback_url'])) {
+                return $this->showmessage(__('回调地址未填写，请填写保存后再测试！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
+            }
+
+            $result = (new TestService())->connect();
+
+            if ($result == 'ok') {
+                return $this->showmessage(__('测试通信连接成功！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_SUCCESS);
+            }
+
         } catch (\Exception $exception) {
             return $this->showmessage($exception->getMessage(), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
         }
