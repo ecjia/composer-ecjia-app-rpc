@@ -74,7 +74,10 @@
                                 <div class="controls">
                                     <input class="w350" type="text" name="callback_url" id="callback_url" value="{$account.callback_url}" />
                                     <a class="toggle_view btn filter-btn" href='{url path="rpc/admin/test_connect"}' data-val="{$account.appid}">测试通信</a>
-                                    <span class="help-block">{t domain="rpc"}回调地址，用于发送数据到对方网站，双向通信使用，没有则不填。{/t}</span>
+                                    <span class="help-block">
+                                        {t domain="rpc"}回调地址，用于发送数据到对方网站，双向通信使用，没有则不填。{/t}<br/>
+                                        {t domain="rpc"}点击测试通信，自动请求"test/connect"接口，检查获取应答响应。{/t}
+                                    </span>
                                 </div>
                             </div>
 
