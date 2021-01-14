@@ -51,7 +51,7 @@ use ecjia;
 use Ecjia\App\Rpc\AccountGenerate;
 use Ecjia\App\Rpc\BrowserEvent\GenerateTokenEvent;
 use Ecjia\App\Rpc\Lists\RpcAccountList;
-use Ecjia\Theme\Merchant\RpcClients\TestService;
+use Ecjia\App\Rpc\RpcClients\TestService;
 use ecjia_admin;
 use ecjia_screen;
 use RC_App;

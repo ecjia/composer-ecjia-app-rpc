@@ -1,6 +1,6 @@
 <?php
 
-namespace Ecjia\Theme\Merchant\RpcClients;
+namespace Ecjia\App\Rpc\RpcClients;
 
 
 use Ecjia\App\Rpc\JsonRpcHttpClient\JsonRpcHttpClient;
