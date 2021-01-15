@@ -1,6 +1,6 @@
 {
-    "name": "ecjia/app-cron",
-    "description": "The ECJia App Cron package.",
+    "name": "ecjia/app-rpc",
+    "description": "The ECJia App RPC package.",
     "type": "royalcms-app",
     "license": "MIT",
     "homepage": "https://github.com/ecjia",
@@ -11,7 +11,8 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "royalcms/cron": "^5.0"
+        "php": ">=7.2.0",
+        "royalcms/laravel-jsonrpc-server": "^3.0",
+        "royalcms/laravel-jsonrpc-client": "^1.0"
     }
 }
