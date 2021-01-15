@@ -67,7 +67,6 @@
                                     <span class="help-block">{t domain="rpc"}这是经过password_hash函数加密过的密文，用于浏览器直接登录验证使用，每次刷新不同。{/t}</span>
                                 </div>
                             </div>
-                            {/if}
 
                             <div class="control-group formSep">
                                 <label class="control-label">{t domain="rpc"}回调地址：{/t}</label>
@@ -80,6 +79,7 @@
                                     </span>
                                 </div>
                             </div>
+                            {/if}
 
                             {*
                             <div class="control-group formSep">
