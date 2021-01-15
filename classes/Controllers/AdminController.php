@@ -51,6 +51,7 @@ use ecjia;
 use Ecjia\App\Rpc\AccountGenerate;
 use Ecjia\App\Rpc\BrowserEvent\GenerateTokenEvent;
 use Ecjia\App\Rpc\Lists\RpcAccountList;
+use Ecjia\App\Rpc\Models\RpcAccountModel;
 use Ecjia\App\Rpc\RpcClients\TestService;
 use ecjia_admin;
 use ecjia_screen;
@@ -158,7 +159,7 @@ class AdminController extends AdminBase
                 'sort'         => $sort,
                 'status'       => intval($_POST['status']),
             );
-            $id   = RC_DB::table('rpc_account')->insertGetId($data);
+            $id   = RpcAccountModel::insertGetId($data);
 
             ecjia_admin::admin_log($_POST['name'], 'add', 'rpc_account');
 
@@ -182,7 +183,7 @@ class AdminController extends AdminBase
 
         $id = intval($_GET['id']);
 
-        $account = RC_DB::table('rpc_account')->where('id', $id)->first();
+        $account = RpcAccountModel::where('id', $id)->first();
 
         $url = RC_Uri::home_url() . '/sites/rpc/rpc-service';
 
@@ -233,7 +234,7 @@ class AdminController extends AdminBase
                 'sort'         => intval($_POST['sort']),
                 'status'       => intval($_POST['status']),
             );
-            RC_DB::table('rpc_account')->where('id', $id)->update($data);
+            RpcAccountModel::where('id', $id)->update($data);
 
             ecjia_admin::admin_log($_POST['name'], 'edit', 'rpc_account');
 
@@ -253,9 +254,9 @@ class AdminController extends AdminBase
 
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-            $info = RC_DB::table('rpc_account')->where('id', $id)->select('name')->first();
+            $info = RpcAccountModel::where('id', $id)->select('name')->first();
 
-            $success = RC_DB::table('rpc_account')->where('id', $id)->delete();
+            $success = RpcAccountModel::where('id', $id)->delete();
 
             if (empty($success)) {
                 return $this->showmessage(__('删除帐号失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
@@ -278,8 +279,9 @@ class AdminController extends AdminBase
 
             $id  = intval($_POST['id']);
             $val = intval($_POST['val']);
-            RC_DB::table('rpc_account')->where('id', $id)->update(array('status' => $val));
-            $name = RC_DB::table('rpc_account')->where('id', $id)->value('name');
+            RpcAccountModel::where('id', $id)->update(array('status' => $val));
+
+            $name = RpcAccountModel::where('id', $id)->value('name');
 
             if ($val == 1) {
                 ecjia_admin::admin_log($name, 'use', 'rpc_account');
@@ -312,7 +314,7 @@ class AdminController extends AdminBase
                 return $this->showmessage(__('请输入数值！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
             }
 
-            $update = RC_DB::table('rpc_account')->where('id', $id)->update(array('sort' => $sort));
+            $update = RpcAccountModel::where('id', $id)->update(array('sort' => $sort));
             if (empty($update)) {
                 return $this->showmessage(__('编辑排序失败！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
             }
@@ -334,10 +336,10 @@ class AdminController extends AdminBase
             $idArr = explode(',', $_POST['id']);
             $count = count($idArr);
 
-            $success = RC_DB::table('rpc_account')->whereIn('id', $idArr)->delete();
+            $success = RpcAccountModel::whereIn('id', $idArr)->delete();
 
             if ($success) {
-                $info = RC_DB::table('rpc_account')->whereIn('id', $idArr)->select('name')->get()->toArray();
+                $info = RpcAccountModel::whereIn('id', $idArr)->select('name')->get()->toArray();
 
                 foreach ($info as $v) {
                     ecjia_admin::admin_log($v['name'], 'batch_remove', 'rpc_account');
@@ -375,7 +377,7 @@ class AdminController extends AdminBase
                 return $this->showmessage(__('APPID参数不能为空！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
             }
 
-            $account = RC_DB::table('rpc_account')->where('appid', $appid)->first();
+            $account = RpcAccountModel::where('appid', $appid)->first();
 
             if (empty($account)) {
                 return $this->showmessage(__('RPC帐户不存在！', 'rpc'), ecjia::MSGTYPE_JSON | ecjia::MSGSTAT_ERROR);
