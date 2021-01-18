@@ -2,8 +2,8 @@
 
 namespace Ecjia\App\Rpc\JsonRpcHttpClient;
 
-use ecjia;
 use Ecjia\App\Rpc\Repositories\DefaultRpcAccountRepository;
+use RC_Hook;
 use Royalcms\Laravel\JsonRpcClient\BasicAuthentication;
 
 class JsonRpcHttpClient extends \Royalcms\Laravel\JsonRpcClient\JsonRpcHttpClient
@@ -12,7 +12,7 @@ class JsonRpcHttpClient extends \Royalcms\Laravel\JsonRpcClient\JsonRpcHttpClien
 
     public function __construct()
     {
-        $appid = ecjia::config('cashier_dscmall_rpc_appid');
+        $appid = RC_Hook::apply_filters('dscmall_rpc_appid', null);
         $this->account = (new DefaultRpcAccountRepository())->getAccountByAppId($appid);
 
         if (empty($this->account)) {
