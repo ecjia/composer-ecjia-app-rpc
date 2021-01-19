@@ -2,9 +2,9 @@
 
 namespace Ecjia\App\Rpc\AuthEncrypter;
 
-use ecjia;
 use Ecjia\App\Rpc\Repositories\DefaultRpcAccountRepository;
 use Illuminate\Encryption\Encrypter;
+use RC_Hook;
 
 class RpcAuthEncrypter implements \Ecjia\Component\AutoLogin\AuthEncrypterInterface
 {
@@ -13,7 +13,7 @@ class RpcAuthEncrypter implements \Ecjia\Component\AutoLogin\AuthEncrypterInterf
 
     public function __construct()
     {
-        $appid = ecjia::config('cashier_dscmall_rpc_appid');
+        $appid = RC_Hook::apply_filters('dscmall_rpc_appid', null);
         $this->account = (new DefaultRpcAccountRepository())->getAccountByAppId($appid);
 
         if (empty($this->account)) {
